@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Basket | Horticulture Products</title>
+<style>
+:root{--green:#176b36;--dark:#104c27;--pale:#e8f5e9;--orange:#e67e22}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Arial,sans-serif;background:#f4f9f2;color:#333;line-height:1.5}
+header{background:var(--green);color:white;text-align:center;padding:22px}
+header h1{font-size:32px}
+nav{background:var(--dark);padding:12px;text-align:center;position:sticky;top:0;z-index:10}
+nav a,nav button{color:white;text-decoration:none;margin:5px 9px;display:inline-block;background:transparent;border:0;cursor:pointer;font-size:15px}
+nav a:hover,nav button:hover{text-decoration:underline}
+.hero{text-align:center;padding:55px 15px;background:#d8efd8}
+.hero h2{font-size:30px;color:var(--green);margin-bottom:10px}
+section{padding:32px 18px;scroll-margin-top:75px}
+h2{color:var(--green);text-align:center;margin-bottom:20px}
+h3{color:var(--green)}
+/* Category catalogue: vertical product list with pagination (no horizontal slider) */
+.products{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;max-width:1050px;margin:0 auto;padding:8px 4px 18px;overflow:visible}
+.product{display:grid;grid-template-columns:190px minmax(0,1fr);gap:5px 18px;align-items:center;text-align:left;width:100%;max-width:100%;min-width:0}
+.product img{grid-column:1;grid-row:1 / span 12;width:100%;height:155px;object-fit:cover}
+.product h3,.product p,.product span,.product label,.product input,.product button,.product br{grid-column:2}
+.product h3{margin:2px 0}
+.product button{justify-self:start}
+.product .badge,.product .offer-tag{justify-self:start}
+.catalog-layout{display:grid;grid-template-columns:180px minmax(0,1fr);gap:18px;max-width:1250px;margin:auto;align-items:start}
+.filter-panel{background:#fff;padding:16px;border-radius:10px;box-shadow:0 2px 7px #ddd;position:sticky;top:80px}
+.filter-panel button{display:block;width:100%;margin:8px 0}
+.filter-panel button.active{background:#e67e22}
+.offer-tag{display:inline-block;background:#fff0d9;color:#b45309;padding:4px 8px;border-radius:5px;font-size:12px;font-weight:bold}
+.old-price{text-decoration:line-through;color:#888;font-size:14px}
+.admin-link{font-size:13px;color:#d8efd8;text-decoration:underline}
+.pagination{display:flex;justify-content:center;align-items:center;gap:7px;flex-wrap:wrap;padding:12px 4px 24px;grid-column:1/-1}
+.pagination button{min-width:40px;margin:0}.pagination button.active{background:var(--orange)}
+.pagination span{font-size:14px;color:#555;margin:0 6px}
+@media(max-width:700px){.catalog-layout{grid-template-columns:1fr}.filter-panel{position:static;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.filter-panel h3{width:100%}.filter-panel button{width:auto}.product{grid-template-columns:115px minmax(0,1fr);gap:4px 12px}.product img{height:125px}.product button{font-size:13px;padding:8px 10px}}
+.product{background:white;padding:14px;border-radius:10px;box-shadow:0 2px 9px #ccc;text-align:center}
+.product img{width:100%;height:155px;object-fit:cover;border-radius:8px;background:#eee}
+.product h3{margin:10px 0 5px}
+.product p{margin:6px}
+.price{color:var(--orange);font-size:19px;font-weight:bold}
+button,.btn{background:var(--green);color:white;border:0;padding:10px 14px;border-radius:5px;cursor:pointer;margin:5px}
+button:hover,.btn:hover{background:var(--dark)}
+/* Keep standalone call-to-action links on their own line to prevent text overlap. */
+.home-offer > a.btn,
+#contact .card > a.btn{
+  display:block;
+  width:max-content;
+  max-width:100%;
+  margin:12px auto 0;
+  line-height:1.4;
+  text-decoration:none;
+}
+input,select,textarea{padding:10px;border:1px solid #bbb;border-radius:5px;margin:6px;max-width:100%;font:inherit}
+input[type=number]{width:82px}
+.card{background:white;padding:20px;margin:15px auto;border-radius:10px;max-width:950px;box-shadow:0 2px 7px #ddd}
+.badge{background:var(--pale);color:var(--green);padding:4px 8px;border-radius:5px;font-size:12px}
+.stars{color:#e6a400;font-size:18px}
+.small{font-size:13px;color:#666}
+.cart-top{background:#fff;color:var(--green);border:2px solid white;font-weight:bold}
+.cart-top:hover{background:var(--pale);color:var(--dark)}
+#cartItems .cart-row{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:10px 0}
+.cart-row button{padding:5px 9px}
+footer{background:var(--dark);color:white;text-align:center;padding:22px}
+.modal{display:none;position:fixed;inset:0;background:#0009;z-index:30;overflow:auto;padding:25px 12px}
+.modal-box{background:white;max-width:600px;margin:35px auto;padding:22px;border-radius:12px;position:relative}
+.close{float:right;background:#777}
+.form-row{display:flex;flex-wrap:wrap;gap:5px}
+.form-row input{flex:1;min-width:190px}
+.review-item{border-bottom:1px solid #ddd;padding:12px 0}
+.feedback-area{background:#edf6ed}
+.catalog-section{display:none}.catalog-section.is-open{display:block}.home-featured{display:flex;gap:16px;overflow-x:auto;max-width:1100px;margin:18px auto;padding:8px 4px 18px}.featured-card{flex:0 0 205px;background:#fff;border-radius:10px;padding:12px;box-shadow:0 2px 8px #ddd;text-align:center;cursor:pointer}.featured-card img{width:100%;height:125px;object-fit:cover;border-radius:8px}.featured-card h3{margin:7px 0}.home-offer{background:#fff4df;border:1px solid #f0d4a7;border-radius:12px;padding:18px;max-width:1050px;margin:20px auto;text-align:center}.home-offer strong{color:#b45309;font-size:22px}.browse-note{text-align:center;color:#526052;margin:8px auto 18px}
+@media(max-width:600px){header h1{font-size:25px}.hero h2{font-size:24px}nav a,nav button{margin:4px;font-size:13px}#cartItems .cart-row{align-items:flex-start;flex-direction:column}}
+
+/* Updated navigation views and responsive product catalogue */
+.products{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px;
+  max-width:none;
+  width:100%;
+  margin:0;
+  padding:8px 4px 18px;
+  overflow:visible;
+}
+.product{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:7px;
+  width:100%;
+  min-width:0;
+  max-width:none;
+  padding:14px;
+  text-align:center;
+}
+.product > *{grid-column:auto !important}
+.product img{
+  width:100%;
+  height:170px;
+  object-fit:cover;
+  border-radius:8px;
+}
+.product h3{margin:5px 0}
+.product p{margin:3px 0}
+.product button{align-self:center}
+.product input[type=number]{align-self:center}
+.catalog-layout{grid-template-columns:180px minmax(0,1fr)}
+.pagination{grid-column:1/-1}
+@media(max-width:1000px){
+  .products{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .catalog-layout{grid-template-columns:1fr}
+  .products{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .product{display:flex;grid-template-columns:none}
+  .product img{height:145px}
+}
+@media(max-width:460px){
+  .products{grid-template-columns:1fr}
+}
+
+
+/* Single-file cart and administrator views */
+.app-page{display:none;min-height:55vh;padding:28px 18px;scroll-margin-top:70px}
+.app-page.active{display:block}
+.app-panel{background:#fff;padding:20px;margin:15px auto;border-radius:10px;max-width:1000px;box-shadow:0 2px 7px #ddd}
+.app-cart-row{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #ddd;padding:12px 0}
+.app-cart-row button{padding:6px 10px}
+.app-total{text-align:right;font-size:22px;font-weight:bold;color:var(--green)}
+.admin-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.admin-stat{background:var(--pale);padding:16px;border-radius:8px;text-align:center}
+.admin-stat strong{display:block;font-size:25px;color:var(--green)}
+.admin-data-row{padding:12px 0;border-bottom:1px solid #ddd;overflow-wrap:anywhere}
+#adminPage input{display:block;width:100%;max-width:420px;padding:11px;margin:9px 0;border:1px solid #bbb;border-radius:5px}
+@media(max-width:600px){.app-cart-row{align-items:flex-start;flex-direction:column}.app-panel{padding:14px}#adminPage input,#adminPage select{width:100%;max-width:100%}}
+
+
+/* Home page: show popular products as a vertical list, without a horizontal scrollbar. */
+#homeFeatured.home-featured{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:12px;
+  width:100%;
+  max-width:1050px;
+  margin:18px auto;
+  padding:8px 4px 18px;
+  overflow:visible;
+}
+#homeFeatured .featured-card{
+  display:grid;
+  grid-template-columns:180px minmax(0,1fr);
+  grid-template-rows:auto auto auto;
+  align-items:center;
+  justify-items:start;
+  column-gap:20px;
+  row-gap:3px;
+  width:100%;
+  min-width:0;
+  padding:14px;
+  text-align:left;
+  cursor:pointer;
+}
+#homeFeatured .featured-card img{
+  grid-column:1;
+  grid-row:1 / span 3;
+  width:100%;
+  height:125px;
+  object-fit:cover;
+  border-radius:8px;
+}
+#homeFeatured .featured-card h3{grid-column:2;margin:0;color:var(--green)}
+#homeFeatured .featured-card p{grid-column:2;margin:0}
+#homeFeatured .featured-card .offer-tag{grid-column:2;justify-self:start}
+/* Home page popular products: four cards per row on desktop, responsive below. */
+#homeFeatured.home-featured{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px;
+  max-width:1400px;
+  width:100%;
+  margin:18px auto;
+  padding:8px 4px 18px;
+  overflow:visible;
+}
+#homeFeatured .featured-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:7px;
+  width:100%;
+  min-width:0;
+  padding:14px;
+  text-align:center;
+}
+#homeFeatured .featured-card img{
+  width:100%;
+  height:155px;
+  object-fit:cover;
+  border-radius:8px;
+}
+#homeFeatured .featured-card h3{margin:5px 0;color:var(--green)}
+#homeFeatured .featured-card p{margin:3px 0}
+#homeFeatured .featured-card .offer-tag{align-self:center}
+@media(max-width:850px){#homeFeatured.home-featured{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){#homeFeatured.home-featured{gap:12px}#homeFeatured .featured-card{padding:10px}#homeFeatured .featured-card img{height:125px}}
+@media(max-width:420px){#homeFeatured.home-featured{grid-template-columns:1fr}}
+
+/* Signed-in customer identity in the navigation bar */
+.customer-nav{display:inline-flex;align-items:center;gap:8px;margin:3px 8px;vertical-align:middle}
+.customer-nav button{margin:2px 3px}
+.customer-nav .customer-profile-trigger{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--dark);font-weight:bold;border-radius:22px;padding:5px 12px}
+.customer-nav .customer-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#e8f5e9}
+.profile-preview{width:96px;height:96px;border-radius:50%;object-fit:cover;border:2px solid #176b36;background:#e8f5e9;display:block;margin:10px 0}
+#customerProfileModal input,#customerProfileModal textarea{display:block;width:100%;margin:8px 0}
+@media(max-width:700px){.customer-nav{margin:4px}.customer-nav .customer-profile-trigger{font-size:12px;padding:4px 8px}}
+
+</style>
+</head>
+<body>
+<header>
+<h1>🌿 GREEN BASKET</h1>
+<p>Fresh Horticultural Products & Organic Farming Solutions</p>
+</header>
+
+<nav>
+<a href="#home" onclick="showHome();return false">Home</a><a href="#fruits" onclick="showCatalog('fruits');return false">Fruits</a><a href="#vegetables" onclick="showCatalog('vegetables');return false">Vegetables</a>
+<a href="#flowers" onclick="showCatalog('flowers');return false">Flowers</a><a href="#fertilizers" onclick="showCatalog('fertilizers');return false">Organic Fertilisers</a>
+<a href="#plants" onclick="showCatalog('plants');return false">Nursery</a>
+<a href="#cart" class="cart-top" onclick="showCartPage();return false">🛒 Shopping Cart (<span id="cartCount">0</span>)</a>
+<span id="customerNav" class="customer-nav"><button onclick="openLogin()">Customer Login</button></span>
+<a href="#offers">Offers</a><a href="#feedback">Feedback</a><a href="#contact">Contact</a>
+</nav>
+
+<div class="hero" id="home">
+<h2>Welcome to Green Basket</h2>
+<p>Farm Fresh Products | Organic Fertilisers | Retail & Wholesale</p>
+
+</div>
+
+<section id="homeShowcase" style="padding-top:24px">
+<div class="home-offer"><p>🌿 WELCOME OFFER</p><strong>10% OFF ON ALL PRODUCTS</strong><p>Fresh produce, flowers, organic fertilisers and nursery plants.</p><a href="#offers" class="btn" onclick="showOffers();return false">View Offers</a></div>
+<h2>Popular Products</h2><p class="browse-note">A quick preview of selected products. Click any product to see its details, price and reviews. Choose a category from the menu to browse its full list.</p>
+<div class="home-featured" id="homeFeatured"></div>
+</section>
+
+<section id="fruits" class="catalog-section"><h2>Fruits</h2><div class="catalog-layout"><aside class="filter-panel"><h3>Choose product type</h3><button class="active" onclick="setProduceFilter('fruit','All',this)">All fruits</button><button onclick="setProduceFilter('fruit','Fresh',this)">Fresh</button><button onclick="setProduceFilter('fruit','Stored',this)">Stored</button></aside><div class="products" id="fruitProducts"></div></div></section>
+<section id="vegetables" class="catalog-section"><h2>Vegetables</h2><div class="catalog-layout"><aside class="filter-panel"><h3>Choose product type</h3><button class="active" onclick="setProduceFilter('vegetable','All',this)">All vegetables</button><button onclick="setProduceFilter('vegetable','Fresh',this)">Fresh</button><button onclick="setProduceFilter('vegetable','Stored',this)">Stored</button></aside><div class="products" id="vegetableProducts"></div></div></section>
+<section id="flowers" class="catalog-section"><h2>Flowers</h2><div class="products" id="flowerProducts"></div></section>
+<section id="fertilizers" class="catalog-section"><h2>Organic Fertilisers – Retail & Bulk</h2><p style="text-align:center;margin-bottom:18px">Prices shown are demonstration prices. Confirm availability and current rates before ordering.</p><div class="products" id="fertilizerProducts"></div></section>
+<section id="plants" class="catalog-section"><h2>Nursery Plants</h2><div class="products" id="plantProducts"></div></section>
+
+<section id="offers" style="background:#fff4df;text-align:center"><h2>🎉 Green Basket Special Offers</h2><p><strong>Get 10% OFF on every product</strong> – fruits, vegetables, flowers, organic fertilisers and nursery plants.</p><p class="small">Offer prices are demonstration prices. Availability and final prices should be confirmed before ordering.</p></section>
+
+<section id="feedback" class="feedback-area">
+<h2>💬 Customer Feedback</h2>
+<div class="card">
+<p>Sign in to submit general feedback about the website or service.</p>
+<button onclick="openLogin('feedback')">Login to Give Feedback</button>
+<div id="generalFeedbackList"></div>
+</div>
+</section>
+
+<section id="about" style="text-align:center;background:#e3f2e3">
+<h2>About Green Basket</h2>
+<p>Green Basket supplies fruits, vegetables, flowers, nursery plants and organic fertilisers. Our objective is to connect growers and consumers and provide quality products at reasonable prices.</p>
+</section>
+
+<section id="contact">
+<h2>📞 Contact Us</h2>
+<div class="card" style="text-align:center">
+<p>📍 Location: Banda, Uttar Pradesh, India</p>
+<p>📞 Phone: +91 8081905448</p>
+<p>📧 Email: greenbasket@gmail.com</p>
+<a class="btn" href="https://wa.me/918081905448" target="_blank" rel="noopener">Contact on WhatsApp</a>
+</div>
+</section>
+
+
+<!-- Shopping cart view: integrated into this single HTML file -->
+<section id="cartPage" class="app-page">
+  <h2>🛒 Your Shopping Cart</h2>
+  <div class="app-panel">
+    <label for="orderType"><strong>Order type:</strong></label>
+    <select id="orderType" onchange="renderIntegratedCart()"><option value="Retail">Retail Order</option><option value="Bulk">Bulk / Wholesale Order</option></select>
+    <div id="integratedCartItems"></div>
+    <p class="app-total" id="integratedCartTotal">Total: ₹0</p>
+    <button onclick="clearCart();renderIntegratedCart()">Clear Cart</button>
+    <button onclick="showHome()">Continue Shopping</button>
+    <button onclick="checkout()">Proceed to Billing</button>
+    <p class="small">Sign in before submitting an order enquiry. This demonstration does not collect online payments.</p>
+  </div>
+</section>
+
+<!-- Administrator portal view: integrated into this single HTML file -->
+<section id="adminPage" class="app-page">
+  <h2>🔐 Green Basket Administrator Portal</h2>
+  <div class="app-panel" id="adminLoginPanel">
+    <h3>Administrator Login</h3>
+    <p class="small">Enter the demo administrator credentials to view the local demonstration dashboard.</p>
+    <form id="integratedAdminLogin">
+      <label>Administrator email</label><input id="integratedAdminEmail" type="email" autocomplete="username" required>
+      <label>Password</label><input id="integratedAdminPassword" type="password" autocomplete="current-password" required>
+      <button type="submit">Login to Dashboard</button>
+    </form>
+    <p id="integratedAdminError" style="color:#b00"></p>
+    <p class="small">Demo login: <b>admin@greenbasket.com</b> | Password: <b>GreenBasket@2026</b></p>
+  </div>
+  <div class="app-panel" id="integratedAdminDashboard" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><h3>Business Dashboard</h3><button onclick="integratedAdminLogout()">Logout</button></div>
+    <div class="admin-stat-grid">
+      <div class="admin-stat"><strong id="integratedOrderCount">0</strong>Order enquiries</div>
+      <div class="admin-stat"><strong id="integratedCustomerCount">0</strong>Registered demo customers</div>
+      <div class="admin-stat"><strong id="integratedFeedbackCount">0</strong>Customer feedback entries</div>
+      <div class="admin-stat"><strong id="integratedProductCount">0</strong>Products in catalogue</div>
+    </div>
+    <div class="app-panel"><h3>Recent Order Enquiries</h3><div id="integratedOrdersList"></div></div>
+    <div class="app-panel"><h3>Customer Feedback</h3><div id="integratedFeedbackList"></div></div>
+    <div class="app-panel" id="adminProductEditor">
+      <h3>Add / Edit Products</h3>
+      <p class="small">Add an item to any existing category or edit its name, description, price and category.</p>
+      <select id="adminEditProduct" onchange="loadAdminProductEditor()" style="display:block;width:100%;max-width:420px"><option value="">Add a new product…</option></select>
+      <input id="adminItemName" placeholder="Product name" />
+      <select id="adminItemCategory"><option value="fruit">Fruits</option><option value="vegetable">Vegetables</option><option value="flower">Flowers</option><option value="fertilizer">Organic Fertilisers</option><option value="plant">Nursery</option></select>
+      <input id="adminItemPrice" type="number" min="0" step="0.01" placeholder="Price" />
+      <input id="adminItemUnit" placeholder="Unit (kg, bunch, piece, plant)" />
+      <input id="adminItemDescription" placeholder="Product description" />
+      <input id="adminItemImage" placeholder="Image URL (optional)" />
+      <button type="button" onclick="saveAdminProduct()">Save product</button><button type="button" onclick="resetAdminProductEditor()">Clear form</button>
+      <p id="adminProductStatus" class="small"></p>
+    </div>
+    <div class="app-panel" id="adminOfferManager">
+      <h3>Product Offers & Calendar Events</h3>
+      <p class="small">Choose an item, set a discount and its active date range (for example, Diwali, Holi, New Year or seasonal offers).</p>
+      <select id="adminOfferProduct" style="display:block;width:100%;max-width:420px"></select>
+      <input id="adminOfferPercent" type="number" min="0" max="90" placeholder="Discount percentage" />
+      <input id="adminOfferEvent" placeholder="Offer/event name (e.g. Diwali Sale)" />
+      <label>Start date</label><input id="adminOfferStart" type="date" />
+      <label>End date</label><input id="adminOfferEnd" type="date" />
+      <button type="button" onclick="saveAdminOffer()">Save offer</button><div id="adminOfferList"></div>
+    </div>
+    <div class="app-panel" id="adminCouponManager">
+      <h3>Coupon Management</h3>
+      <input id="adminCouponCode" placeholder="Coupon code (e.g. GREEN10)" />
+      <input id="adminCouponPercent" type="number" min="1" max="90" placeholder="Discount percentage" />
+      <input id="adminCouponExpiry" type="date" />
+      <button type="button" onclick="saveAdminCoupon()">Add / Update coupon</button><div id="adminCouponList"></div>
+    </div>
+    <div class="app-panel"><h3>Catalogue Overview</h3><div id="integratedCatalogueList"></div></div>
+    <div class="app-panel" id="productImageManager"><h3>Product Photograph Manager</h3><p class="small">Choose a product, upload its actual photograph, preview it, and save. The image is stored in this browser for this demonstration website.</p><label for="adminProductSelect">Select product</label><select id="adminProductSelect" style="display:block;width:100%;max-width:420px;padding:10px;margin:8px 0"></select><label for="adminProductImage">Upload product photograph</label><input id="adminProductImage" type="file" accept="image/*" style="display:block;margin:8px 0"><img id="adminProductImagePreview" alt="Selected product preview" style="display:none;width:220px;height:160px;object-fit:contain;border:1px solid #ddd;border-radius:8px;padding:5px"><p><button type="button" onclick="saveAdminProductImage()">Save photograph for this product</button></p><p id="adminImageStatus" class="small" aria-live="polite"></p></div>
+    <p class="small">This dashboard reads demonstration data saved in this browser's localStorage. It is not a secure multi-user administrator system and does not connect to a central database.</p>
+  </div>
+  <p style="text-align:center"><button onclick="showHome()">← Return to Green Basket website</button></p>
+</section>
+
+<footer><p class="small" style="color:#e8f5e9;margin-bottom:10px">Flower photographs: Rose – Zyrahila; Marigold – Drsssuresh1961; Jasmine – Thimuth; Chrysanthemum – Aranya007 (Wikimedia Commons, CC BY-SA).</p><p>© 2026 Green Basket | All Rights Reserved</p><p>Growing Green, Delivering Freshness 🌿</p><p style="margin-top:10px"><a class="admin-link" href="#admin" onclick="showAdminPage();return false">Administrator Portal</a></p></footer>
+
+<!-- Customer login / registration modal -->
+<div class="modal" id="loginModal">
+<div class="modal-box">
+<button class="close" onclick="closeModal('loginModal')">Close</button>
+<h2>Customer Account</h2>
+<p id="loginMessage" class="small">Create an account or sign in to continue.</p>
+<h3>Create account</h3>
+<form id="registerForm">
+<div class="form-row"><input id="regName" placeholder="Full name" required>
+<input id="regEmail" type="email" placeholder="Email address (optional if mobile is entered)"></div>
+<div class="form-row"><input id="regMobile" type="tel" placeholder="10-digit mobile number" pattern="[6-9][0-9]{9}" required></div>
+<div class="form-row"><input id="regPassword" type="password" placeholder="Create password (minimum 8 characters)" minlength="8" required></div>
+<button type="submit">Create Account</button>
+</form>
+<hr style="margin:18px 0">
+<h3>Already registered? Login</h3>
+<form id="loginForm">
+<div class="form-row"><input id="loginIdentity" type="text" placeholder="Email address or mobile number" required>
+<input id="loginPassword" type="password" placeholder="Password" required></div>
+<button type="submit">Login</button>
+</form>
+<hr style="margin:18px 0">
+<h3>Continue with Google</h3>
+<p class="small">Google sign-in must be configured with your own Google OAuth client ID and a secure backend before it can authenticate customers.</p>
+<div id="googleSignInButton"></div>
+<p id="accountStatus" class="small"></p>
+</div>
+</div>
+
+
+<!-- Customer profile: editable delivery address and profile photograph -->
+<div class="modal" id="customerProfileModal">
+ <div class="modal-box">
+  <button class="close" onclick="closeModal('customerProfileModal')">Close</button>
+  <h2>My Customer Profile</h2>
+  <p class="small">Update the name, mobile number, delivery address and profile photograph associated with this demo account.</p>
+  <form id="customerProfileForm">
+   <label for="profileName">Customer name</label>
+   <input id="profileName" type="text" required>
+   <label for="profileMobile">Mobile number</label>
+   <input id="profileMobile" type="tel" pattern="[6-9][0-9]{9}" maxlength="10" required>
+   <label for="profileAddress">Default delivery address</label>
+   <textarea id="profileAddress" rows="3" placeholder="House/flat, street, area, city, state, PIN code"></textarea>
+   <label for="profilePhotoInput">Profile photograph</label>
+   <img id="profilePhotoPreview" class="profile-preview" alt="Customer profile photograph">
+   <input id="profilePhotoInput" type="file" accept="image/*">
+   <p id="profileSaveStatus" class="small" aria-live="polite"></p>
+   <button type="submit">Save Profile</button>
+  </form>
+  <button type="button" onclick="logout()">Logout</button>
+ </div>
+</div>
+
+<!-- Product details and individual product reviews -->
+<div class="modal" id="productModal">
+<div class="modal-box">
+<button class="close" onclick="closeModal('productModal')">Close</button>
+<div id="productDetails"></div>
+<hr style="margin:15px 0">
+<h3>Customer ratings and reviews</h3>
+<div id="productReviewSummary"></div>
+<div id="productReviewList"></div>
+<div id="productReviewForm" style="display:none">
+<label>Your rating:</label>
+<select id="detailRating"><option value="5">★★★★★ - Excellent</option><option value="4">★★★★ - Very good</option><option value="3">★★★ - Good</option><option value="2">★★ - Fair</option><option value="1">★ - Poor</option></select>
+<textarea id="detailReviewText" placeholder="Write your review" rows="3" style="width:95%"></textarea>
+<button onclick="submitProductReview()">Submit product review</button>
+</div>
+<p id="reviewLoginPrompt" class="small">Please log in to submit a product review.</p>
+</div>
+</div>
+
+<!-- Feedback form modal -->
+<div class="modal" id="feedbackModal">
+<div class="modal-box">
+<button class="close" onclick="closeModal('feedbackModal')">Close</button>
+<h2>Share your feedback</h2>
+<textarea id="feedbackText" rows="5" style="width:95%" placeholder="Write your feedback" required></textarea>
+<button onclick="submitGeneralFeedback()">Submit feedback</button>
+</div>
+</div>
+
+<script>
+// Demonstration product catalogue. Prices are sample values, not live market quotations.
+const products = [
+{name:"Apple",category:"fruit",storage:"Stored",price:160,unit:"kg",image:"https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600"},
+{name:"Avocado",category:"fruit",price:250,unit:"kg",image:"https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=600"},
+{name:"Kiwi",category:"fruit",storage:"Stored",price:220,unit:"kg",image:"https://images.unsplash.com/photo-1585059895524-72359e06133a?w=600"},
+{name:"Karonda",category:"fruit",price:90,unit:"kg",image:"https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=600"},
+{name:"Guava",category:"fruit",price:60,unit:"kg",image:"https://images.unsplash.com/photo-1536511132770-e5058c7e8c46?w=600"},
+{name:"Wood Apple",category:"fruit",price:70,unit:"piece",image:"https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=600"},
+{name:"Pear",category:"fruit",storage:"Stored",price:140,unit:"kg",image:"https://images.unsplash.com/photo-1514756331096-242fdeb70d4a?w=600"},
+{name:"Peach",category:"fruit",price:180,unit:"kg",image:"https://images.unsplash.com/photo-1629828874514-c1e5103f3b8b?w=600"},
+{name:"Plum",category:"fruit",price:190,unit:"kg",image:"https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=600"},
+{name:"Grapes",category:"fruit",storage:"Stored",price:100,unit:"kg",image:"https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=600"},
+{name:"Mango",category:"fruit",price:100,unit:"kg",image:"https://images.unsplash.com/photo-1553279768-865429fa0078?w=600"},
+{name:"Banana",category:"fruit",price:50,unit:"dozen",image:"https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600"},
+{name:"Orange",category:"fruit",storage:"Stored",price:80,unit:"kg",image:"https://images.unsplash.com/photo-1547514701-42782101795e?w=600"},
+
+{name:"Ladyfinger (Okra)",category:"vegetable",price:40,unit:"kg",image:"https://images.unsplash.com/photo-1589927986089-35812388d1f4?w=600"},
+{name:"Cowpea",category:"vegetable",price:70,unit:"kg",image:"https://images.unsplash.com/photo-1515543904379-3d1f2c3f5f3f?w=600"},
+{name:"Snap Bean",category:"vegetable",price:90,unit:"kg",image:"https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?w=600"},
+{name:"Sponge Gourd",category:"vegetable",price:40,unit:"kg",image:"https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600"},
+{name:"Bottle Gourd",category:"vegetable",price:30,unit:"piece",image:"https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600"},
+{name:"Bitter Gourd",category:"vegetable",price:50,unit:"kg",image:"https://images.unsplash.com/photo-1604495772376-9657f0035eb5?w=600"},
+{name:"Turnip",category:"vegetable",storage:"Stored",price:35,unit:"kg",image:"https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600"},
+{name:"Carrot",category:"vegetable",storage:"Stored",price:40,unit:"kg",image:"https://images.unsplash.com/photo-1445282768818-728615cc910a?w=600"},
+{name:"Radish",category:"vegetable",price:30,unit:"kg",image:"https://images.unsplash.com/photo-1445282768818-728615cc910a?w=600"},
+{name:"Beetroot",category:"vegetable",storage:"Stored",price:45,unit:"kg",image:"https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=600"},
+{name:"Spinach",category:"vegetable",price:25,unit:"bunch",image:"https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600"},
+{name:"Green Coriander",category:"vegetable",price:20,unit:"bunch",image:"https://images.unsplash.com/photo-1600326145552-327f74b9c189?w=600"},
+{name:"Ginger",category:"vegetable",storage:"Stored",price:100,unit:"kg",image:"https://images.unsplash.com/photo-1615485500704-8e990f9900f3?w=600"},
+{name:"Mint Leaves",category:"vegetable",price:20,unit:"bunch",image:"https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=600"},
+{name:"Tomato",category:"vegetable",price:30,unit:"kg",image:"https://doorkisan.com/wp-content/uploads/2016/05/upload_1e46ebbf78004709973c6b679673f94c.jpg"},
+{name:"Potato",category:"vegetable",storage:"Stored",price:25,unit:"kg",image:"https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600"},
+{name:"Cauliflower",category:"vegetable",price:40,unit:"kg",image:"https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?w=600"},
+
+{name:"Rose",category:"flower",price:100,unit:"bunch",image:"https://commons.wikimedia.org/wiki/Special:FilePath/Rose_Close_up.jpg?width=700"},
+{name:"Marigold",category:"flower",price:60,unit:"bunch",image:"https://commons.wikimedia.org/wiki/Special:FilePath/Marigold_Flower_close_up.jpg?width=700"},
+{name:"Jasmine",category:"flower",price:120,unit:"bunch",image:"https://commons.wikimedia.org/wiki/Special:FilePath/Jasmine_flowers_close_capture.jpg?width=700"},
+{name:"Chrysanthemum",category:"flower",price:90,unit:"bunch",image:"https://commons.wikimedia.org/wiki/Special:FilePath/Chrysanthemum_close_up.jpg?width=700"},
+{name:"Lily",category:"flower",price:150,unit:"bunch",image:"https://images.unsplash.com/photo-1520763185298-1b434c919102?w=600"},
+
+{name:"Vermicompost",category:"fertilizer",price:15,unit:"kg",bulkPrice:600,bulkUnit:"50 kg bag",image:"https://storeassets.im-cdn.com/media-manager/sacsvanya/EHRZpP2mQIi704Cygd9M_Vermicompost%20-%20Organic%20Fertiliser%20for%20Plants_0x0_webp.png"},
+{name:"Neem Cake",category:"fertilizer",price:35,unit:"kg",bulkPrice:1500,bulkUnit:"50 kg bag",image:"https://images.unsplash.com/photo-1587049352851-8d4e89133924?w=600"},
+{name:"Farmyard Manure",category:"fertilizer",price:8,unit:"kg",bulkPrice:350,bulkUnit:"50 kg bag",image:"https://images.unsplash.com/photo-1589923188900-85dae523342b?w=600"},
+{name:"Organic Compost",category:"fertilizer",price:12,unit:"kg",bulkPrice:500,bulkUnit:"50 kg bag",image:"https://images.unsplash.com/photo-1587049352851-8d4e89133924?w=600"},
+
+{name:"Indoor Plant",category:"plant",price:150,unit:"plant",image:"https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=600"},
+{name:"Mango Sapling",category:"plant",price:120,unit:"plant",image:"https://amagro.or.tz/img/bg-img/19.jpeg"}
+];
+// Demonstration offer: 10% discount on every listed product.
+products.forEach(p=>{p.originalPrice=p.price;p.offerPercent=10;p.price=Math.round(p.price*0.9);if(p.bulkPrice){p.originalBulkPrice=p.bulkPrice;p.bulkPrice=Math.round(p.bulkPrice*0.9);}});
+// Restore administrator-edited catalogue after the demonstration defaults are prepared.
+const savedCatalog=JSON.parse(localStorage.getItem("gbProductCatalog")||"null");
+if(Array.isArray(savedCatalog)&&savedCatalog.length){products.splice(0,products.length,...savedCatalog);}
+
+
+const savedProductImages = JSON.parse(localStorage.getItem("gbProductImages") || "{}");
+products.forEach(p=>{if(savedProductImages[p.name])p.image=savedProductImages[p.name];});
+if(!localStorage.getItem("gbProductCatalog"))localStorage.setItem("gbProductCatalog", JSON.stringify(products));
+let cart = JSON.parse(localStorage.getItem("gbCart") || "[]");
+let reviews = JSON.parse(localStorage.getItem("gbReviews") || "[]");
+let feedback = JSON.parse(localStorage.getItem("gbFeedback") || "[]");
+let currentCustomer = JSON.parse(sessionStorage.getItem("gbCustomer") || "null");
+let activeProduct = null;
+let pendingAction = null;
+
+function safeText(value){return String(value ?? "");}
+function averageRating(productName){
+ const list=reviews.filter(r=>r.product===productName);
+ if(!list.length)return {average:"No ratings",count:0};
+ const avg=list.reduce((sum,r)=>sum+Number(r.rating),0)/list.length;
+ return {average:avg.toFixed(1),count:list.length};
+}
+function activeOffer(p){
+ const today=new Date().toISOString().slice(0,10),offers=JSON.parse(localStorage.getItem("gbOffers")||"[]");
+ return offers.find(o=>o.product===p.name&&o.start<=today&&o.end>=today)||null;
+}
+const produceFilters={fruit:"All",vegetable:"All"};
+const productPageSize=8;
+const productPages={fruit:1,vegetable:1,flower:1,fertilizer:1,plant:1};
+function setProductPage(category,page){productPages[category]=page;renderProducts(category,category+"Products");}
+function setProduceFilter(category,type,button){produceFilters[category]=type;productPages[category]=1;const panel=button.parentElement;panel.querySelectorAll("button").forEach(b=>b.classList.remove("active"));button.classList.add("active");renderProducts(category,category==="fruit"?"fruitProducts":"vegetableProducts");}
+function renderProducts(category,elementId){
+ const root=document.getElementById(elementId); root.replaceChildren();
+ const filtered=products.filter(p=>p.category===category && (category!=="fruit"&&category!=="vegetable" || produceFilters[category]==="All" || (p.storage||"Fresh")===produceFilters[category]));
+ const totalPages=Math.max(1,Math.ceil(filtered.length/productPageSize));
+ productPages[category]=Math.min(Math.max(1,productPages[category]||1),totalPages);
+ const start=(productPages[category]-1)*productPageSize;
+ filtered.slice(start,start+productPageSize).forEach(p=>{
+  const rating=averageRating(p.name);
+  const card=document.createElement("article"); card.className="product";
+  const img=document.createElement("img"); img.src=p.image; img.alt=p.name;
+  img.loading="lazy"; img.onerror=()=>{img.src="";img.alt=p.name+" image unavailable";};
+  const title=document.createElement("h3"); title.textContent=p.name; title.style.cursor="pointer"; title.title="Click to view this product"; title.onclick=()=>openProduct(p.name); img.style.cursor="pointer"; img.title="Click to view this product"; img.onclick=()=>openProduct(p.name);
+  const desc=document.createElement("p"); desc.textContent="Quality horticultural product";
+  const offer=document.createElement("span");offer.className="offer-tag";offer.textContent="10% OFF";
+  const oldPrice=document.createElement("p");oldPrice.className="old-price";oldPrice.textContent=`MRP: ₹${p.originalPrice} / ${p.unit}`;
+  const price=document.createElement("p"); price.className="price"; price.textContent=`Offer: ₹${p.price} / ${p.unit}`;
+  const bulk=document.createElement("p"); bulk.textContent=p.bulkPrice?`Bulk: ₹${p.bulkPrice} / ${p.bulkUnit}`:"";
+  const badge=document.createElement("span"); badge.className="badge"; badge.textContent=category.toUpperCase();
+  const summary=document.createElement("p"); summary.className="stars"; summary.textContent=`★ ${rating.average} (${rating.count} ratings)`;
+  const qtyLabel=document.createElement("label"); qtyLabel.textContent="Quantity: ";
+  const qty=document.createElement("input"); qty.type="number"; qty.min="1"; qty.step="1"; qty.value="1"; qty.id="qty-"+products.indexOf(p);
+  const add=document.createElement("button"); add.textContent="Add to Cart"; add.onclick=()=>addToCart(products.indexOf(p),Number(qty.value));
+  const details=document.createElement("button"); details.textContent="View details & reviews"; details.onclick=()=>openProduct(p.name);
+  card.append(img,title,desc,offer,oldPrice,price,bulk,badge,summary,qtyLabel,qty,document.createElement("br"),add,details);
+  root.appendChild(card);
+ });
+ if(totalPages>1){
+  const pager=document.createElement("div");pager.className="pagination";pager.setAttribute("aria-label",category+" product pages");
+  const prev=document.createElement("button");prev.textContent="← Previous";prev.disabled=productPages[category]===1;prev.onclick=()=>setProductPage(category,productPages[category]-1);pager.append(prev);
+  for(let page=1;page<=totalPages;page++){
+   const b=document.createElement("button");b.textContent=page;b.className=page===productPages[category]?"active":"";b.setAttribute("aria-label","Page "+page);b.setAttribute("aria-current",page===productPages[category]?"page":"false");b.onclick=()=>setProductPage(category,page);pager.append(b);
+  }
+  const next=document.createElement("button");next.textContent="Next →";next.disabled=productPages[category]===totalPages;next.onclick=()=>setProductPage(category,productPages[category]+1);pager.append(next);
+  const info=document.createElement("span");info.textContent=`Page ${productPages[category]} of ${totalPages} · ${filtered.length} products`;pager.append(info);root.append(pager);
+ }
+}
+function hideStorefrontSections(){
+ // Hide every top-level storefront section, not just the category catalogues.
+ // This prevents Offers, Feedback, About and Contact from remaining visible
+ // underneath the integrated Cart or Administrator views.
+ document.querySelectorAll('body > section').forEach(section=>{
+   section.style.display='none';
+   section.classList.remove('is-open');
+ });
+ document.getElementById('home').style.display='none';
+ document.getElementById('homeShowcase').style.display='none';
+ document.getElementById('cartPage').classList.remove('active');
+ document.getElementById('adminPage').classList.remove('active');
+}
+function showCatalog(id){
+ hideStorefrontSections();
+ const section=document.getElementById(id);
+ if(section){
+   section.style.display='block';
+   section.classList.add('is-open');
+   section.scrollIntoView({behavior:'smooth',block:'start'});
+ }
+}
+function showHome(){
+ hideStorefrontSections();
+ // Restore the complete storefront, including Offers, Feedback, About and Contact.
+ document.getElementById('home').style.display='';
+ document.getElementById('homeShowcase').style.display='';
+ document.querySelectorAll('body > section').forEach(section=>{
+   if(!section.classList.contains('app-page')){
+     section.style.display='';
+     if(section.classList.contains('catalog-section')){
+       section.style.display='none';
+       section.classList.remove('is-open');
+     }
+   }
+ });
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function showOffers(){showHome();document.getElementById('offers').scrollIntoView({behavior:'smooth'});}
+function renderHomeFeatured(){
+ const root=document.getElementById('homeFeatured');if(!root)return;root.replaceChildren();
+ const featured=['Mango','Apple','Tomato','Rose','Vermicompost','Mango Sapling'];
+ featured.forEach(name=>{const p=products.find(x=>x.name===name);if(!p)return;
+  const card=document.createElement('article');card.className='featured-card';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label','View '+p.name+' details');
+  const img=document.createElement('img');img.src=p.image;img.alt=p.name;img.loading='lazy';
+  const title=document.createElement('h3');title.textContent=p.name;
+  const price=document.createElement('p');price.innerHTML='<strong>₹'+p.price+' / '+p.unit+'</strong>';
+  const offer=document.createElement('span');offer.className='offer-tag';offer.textContent='10% OFF';
+  card.append(img,title,price,offer);card.addEventListener('click',()=>openProduct(p.name));card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openProduct(p.name);}});root.append(card);
+ });
+}
+function renderAllProducts(){
+ renderProducts("fruit","fruitProducts");renderProducts("vegetable","vegetableProducts");
+ renderProducts("flower","flowerProducts");renderProducts("fertilizer","fertilizerProducts");
+ renderProducts("plant","plantProducts");
+}
+function addToCart(index,qty){
+ const p=products[index];
+ if(!p || !Number.isFinite(qty) || qty<=0 || (p.unit!=="kg" && !Number.isInteger(qty)) || (p.unit==="kg" && qty<0.25)){alert("Choose a valid quantity. Produce sold by kg starts at 250 grams.");return;}
+ const existing=cart.find(x=>x.name===p.name);
+ if(existing)existing.qty+=qty;else cart.push({name:p.name,qty});
+ persistCart();updateCart();
+}
+function persistCart(){localStorage.setItem("gbCart",JSON.stringify(cart));}
+function updateCart(){
+ let count=cart.reduce((sum,item)=>sum+item.qty,0);
+ const badge=document.getElementById("cartCount");
+ if(badge) badge.textContent=count;
+}
+function changeQty(name,delta){const item=cart.find(x=>x.name===name);if(!item)return;const p=products.find(x=>x.name===name);item.qty+=delta;if(item.qty<(p&&p.unit==="kg"?0.25:1))cart=cart.filter(x=>x.name!==name);persistCart();updateCart();if(typeof renderIntegratedCart==='function')renderIntegratedCart();}
+function removeFromCart(name){cart=cart.filter(x=>x.name!==name);persistCart();updateCart();if(typeof renderIntegratedCart==='function')renderIntegratedCart();}
+function clearCart(){cart=[];persistCart();updateCart();if(typeof renderIntegratedCart==='function')renderIntegratedCart();}
+
+function openLogin(action){
+ pendingAction=action||null;
+ document.getElementById("loginMessage").textContent=action==="checkout"?"Please sign in before billing.":action==="feedback"?"Please sign in to submit feedback.":"Create an account or sign in.";
+ document.getElementById("loginModal").style.display="block";
+}
+function closeModal(id){document.getElementById(id).style.display="none";}
+function setCustomer(customer){
+ const previous=currentCustomer||{};
+ currentCustomer={name:customer.name||previous.name||"",email:customer.email||previous.email||"",mobile:customer.mobile||previous.mobile||"",address:customer.address||previous.address||"",photo:customer.photo||previous.photo||""};
+ sessionStorage.setItem("gbCustomer",JSON.stringify(currentCustomer));
+ document.getElementById("accountStatus").textContent=`Signed in as ${currentCustomer.name} (${currentCustomer.email||currentCustomer.mobile})`;
+ renderCustomerNav();
+ closeModal("loginModal");
+ if(pendingAction==="checkout"){
+  showCartPage();
+  document.getElementById("deliveryName").value=currentCustomer.name||"";
+  document.getElementById("deliveryMobile").value=currentCustomer.mobile||"";
+  document.getElementById("deliveryAddress").value=currentCustomer.address||"";
+  document.getElementById("billingDetails").scrollIntoView({behavior:"smooth",block:"center"});
+ }
+ if(pendingAction==="feedback")document.getElementById("feedbackModal").style.display="block";
+ pendingAction=null;
+}
+
+document.getElementById("registerForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const name=document.getElementById("regName").value.trim();
+ const email=document.getElementById("regEmail").value.trim().toLowerCase();
+ const mobile=document.getElementById("regMobile").value.trim();
+ const password=document.getElementById("regPassword").value;
+ if(!/^[6-9][0-9]{9}$/.test(mobile)){alert("Enter a valid 10-digit Indian mobile number.");return;}
+ if(email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){alert("Enter a valid email address.");return;}
+ if(password.length<8){alert("Password must contain at least 8 characters.");return;}
+ const users=JSON.parse(localStorage.getItem("gbDemoUsers")||"[]");
+ if(users.some(u=>(email && u.email===email)||u.mobile===mobile)){alert("An account with this email or mobile number already exists. Please log in.");return;}
+ // DEMO ONLY: credentials are stored locally; production requires secure server authentication.
+ users.push({name,email,mobile,password});localStorage.setItem("gbDemoUsers",JSON.stringify(users));
+ setCustomer({name,email,mobile});alert("Demo account created. Connect a secure authentication backend before public launch.");
+});
+document.getElementById("loginForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const identity=document.getElementById("loginIdentity").value.trim().toLowerCase();
+ const password=document.getElementById("loginPassword").value;
+ const users=JSON.parse(localStorage.getItem("gbDemoUsers")||"[]");
+ const user=users.find(u=>(u.email===identity||u.mobile===identity)&&u.password===password);
+ if(!user){alert("Account not found or password incorrect.");return;}
+ setCustomer(user);
+});
+
+function renderCustomerNav(){
+ const root=document.getElementById("customerNav");if(!root)return;root.replaceChildren();
+ if(!currentCustomer){const b=document.createElement("button");b.textContent="Customer Login";b.onclick=()=>openLogin();root.append(b);return;}
+ const b=document.createElement("button");b.type="button";b.className="customer-profile-trigger";b.onclick=openCustomerProfile;
+ const img=document.createElement("img");img.className="customer-avatar";img.alt="";img.src=currentCustomer.photo||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23d8efd8'/%3E%3Ccircle cx='20' cy='14' r='7' fill='%23176b36'/%3E%3Cpath d='M6 38c1-9 7-14 14-14s13 5 14 14' fill='%23176b36'/%3E%3C/svg%3E";
+ const label=document.createElement("span");label.textContent=currentCustomer.name||"My Account";
+ b.append(img,label);root.append(b);
+}
+function openCustomerProfile(){
+ if(!currentCustomer){openLogin();return;}
+ document.getElementById("profileName").value=currentCustomer.name||"";
+ document.getElementById("profileMobile").value=currentCustomer.mobile||"";
+ document.getElementById("profileAddress").value=currentCustomer.address||"";
+ const preview=document.getElementById("profilePhotoPreview");
+ preview.src=currentCustomer.photo||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='48' r='48' fill='%23d8efd8'/%3E%3Ccircle cx='48' cy='34' r='17' fill='%23176b36'/%3E%3Cpath d='M15 92c2-22 16-34 33-34s31 12 33 34' fill='%23176b36'/%3E%3C/svg%3E";
+ document.getElementById("profileSaveStatus").textContent="";
+ document.getElementById("customerProfileModal").style.display="block";
+}
+let pendingCustomerPhoto="";
+document.getElementById("profilePhotoInput").addEventListener("change",e=>{
+ const file=e.target.files&&e.target.files[0];if(!file)return;
+ if(!file.type.startsWith("image/")){document.getElementById("profileSaveStatus").textContent="Please select an image file.";return;}
+ if(file.size>8*1024*1024){document.getElementById("profileSaveStatus").textContent="Please choose an image smaller than 8 MB.";return;}
+ const reader=new FileReader();reader.onload=()=>{
+  const img=new Image();img.onload=()=>{
+   const canvas=document.createElement("canvas"),scale=Math.min(1,500/Math.max(img.width,img.height));
+   canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+   canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+   pendingCustomerPhoto=canvas.toDataURL("image/jpeg",0.78);
+   document.getElementById("profilePhotoPreview").src=pendingCustomerPhoto;
+   document.getElementById("profileSaveStatus").textContent="Photograph ready. Save your profile to apply it.";
+  };img.onerror=()=>document.getElementById("profileSaveStatus").textContent="Could not read this photograph.";img.src=reader.result;
+ };reader.readAsDataURL(file);
+});
+document.getElementById("customerProfileForm").addEventListener("submit",e=>{
+ e.preventDefault();if(!currentCustomer)return;
+ const name=document.getElementById("profileName").value.trim(),mobile=document.getElementById("profileMobile").value.trim(),address=document.getElementById("profileAddress").value.trim();
+ if(!name||! /^[6-9][0-9]{9}$/.test(mobile)){alert("Enter a customer name and valid 10-digit Indian mobile number.");return;}
+ const oldMobile=currentCustomer.mobile||"";
+ const users=JSON.parse(localStorage.getItem("gbDemoUsers")||"[]");
+ const duplicate=users.find(u=>u.mobile===mobile && u.mobile!==oldMobile);
+ if(duplicate){alert("This mobile number is already linked to another demo account.");return;}
+ currentCustomer={...currentCustomer,name,mobile,address,photo:pendingCustomerPhoto||currentCustomer.photo||""};
+ const index=users.findIndex(u=>(currentCustomer.email&&u.email===currentCustomer.email)||(oldMobile&&u.mobile===oldMobile));
+ if(index>=0)users[index]={...users[index],name,mobile,address,photo:currentCustomer.photo};
+ localStorage.setItem("gbDemoUsers",JSON.stringify(users));
+ sessionStorage.setItem("gbCustomer",JSON.stringify(currentCustomer));
+ document.getElementById("accountStatus").textContent=`Signed in as ${name} (${currentCustomer.email||mobile})`;
+ pendingCustomerPhoto="";document.getElementById("profilePhotoInput").value="";
+ renderCustomerNav();
+ document.getElementById("profileSaveStatus").textContent="Profile saved successfully.";
+});
+function checkout(){
+ if(!cart.length){alert("Please add products to your cart first.");return;}
+ if(!currentCustomer){openLogin("checkout");return;}
+ document.getElementById("deliveryName").value=currentCustomer.name||"";
+ document.getElementById("deliveryMobile").value=currentCustomer.mobile||"";
+ document.getElementById("deliveryAddress").value=currentCustomer.address||"";
+ document.getElementById("demoPaymentNotice").textContent="";
+ document.getElementById("billingDetails").scrollIntoView({behavior:"smooth",block:"center"});
+}
+let appliedCoupon=null;
+function applyCheckoutCoupon(){
+ const code=document.getElementById("checkoutCoupon").value.trim().toUpperCase();
+ const coupons=JSON.parse(localStorage.getItem("gbCoupons")||"[]");
+ const c=coupons.find(x=>x.code===code && (!x.expiry || x.expiry>=new Date().toISOString().slice(0,10)));
+ if(!c){appliedCoupon=null;document.getElementById("couponStatus").textContent="Invalid or expired coupon.";return;}
+ appliedCoupon=c;document.getElementById("couponStatus").textContent=`Coupon ${c.code} applied: ${c.percent}% off.`;renderIntegratedCart();
+}
+function submitDemoBilling(){
+ if(!currentCustomer){openLogin("checkout");return;}
+ const name=document.getElementById("deliveryName").value.trim(),mobile=document.getElementById("deliveryMobile").value.trim(),address=document.getElementById("deliveryAddress").value.trim();
+ if(!name||! /^[6-9][0-9]{9}$/.test(mobile)||address.length<10){alert("Enter recipient name, valid 10-digit mobile number and complete delivery address.");return;}
+ const type=document.getElementById("orderType").value;
+ const items=cart.map(item=>{const p=products.find(x=>x.name===item.name);const special=activeOffer(p),basePrice=type==="Bulk"&&p.bulkPrice?p.bulkPrice:p.price;const price=special?Math.round((p.originalPrice??basePrice)*(1-special.percent/100)*100)/100:basePrice;const unit=type==="Bulk"&&p.bulkPrice?p.bulkUnit:p.unit;return {name:p.name,quantity:item.qty,unit,unitPrice:price,lineTotal:price*item.qty};});
+ const subtotal=items.reduce((sum,x)=>sum+x.lineTotal,0),discount=appliedCoupon?subtotal*appliedCoupon.percent/100:0,total=Math.max(0,subtotal-discount);
+ const order={date:new Date().toISOString(),customer:currentCustomer,delivery:{name,mobile,address},orderType:type,items,subtotal,discount,coupon:appliedCoupon?.code||"",total,status:"Demo checkout - payment not initiated"};
+ const saved=JSON.parse(localStorage.getItem("gbDemoOrders")||"[]");saved.push(order);localStorage.setItem("gbDemoOrders",JSON.stringify(saved));
+ document.getElementById("demoPaymentNotice").innerHTML=`<strong>Billing details saved for demonstration.</strong><br>Order total: ₹${total.toFixed(2)}. Online payment is disabled in this demo; no payment has been initiated or collected.`;
+ document.getElementById("demoPaymentNotice").style.color="#176b36";
+ cart=[];persistCart();updateCart();renderIntegratedCart();
+ document.getElementById("billingDetails").scrollIntoView({behavior:"smooth",block:"center"});
+}
+function openProduct(name){
+ activeProduct=name;const p=products.find(x=>x.name===name);if(!p)return;
+ const root=document.getElementById("productDetails");root.replaceChildren();
+ const img=document.createElement("img");img.src=p.image;img.alt=p.name;img.style="width:100%;max-height:220px;object-fit:cover;border-radius:8px";
+ const title=document.createElement("h2");title.textContent=p.name;
+ const price=document.createElement("p");const special=activeOffer(p),shownPrice=special?Math.round((p.originalPrice??p.price)*(1-special.percent/100)*100)/100:p.price;price.textContent=`Price: ₹${shownPrice} / ${p.unit}`+(p.bulkPrice?` | Bulk: ₹${p.bulkPrice} / ${p.bulkUnit}`:"");
+ const desc=document.createElement("p");desc.textContent="Product information and availability can be confirmed with Green Basket before purchase.";
+ const add=document.createElement('button');add.textContent='Add this product to cart';add.onclick=()=>{addToCart(products.indexOf(p),1);alert(p.name+' added to your cart.');};
+ root.append(img,title,price,desc,add);
+ const r=averageRating(name);
+ document.getElementById("productReviewSummary").textContent=`Average rating: ${r.average} out of 5 | Total participants: ${r.count}`;
+ const list=document.getElementById("productReviewList");list.replaceChildren();
+ const matching=reviews.filter(x=>x.product===name).slice().reverse();
+ if(!matching.length)list.textContent="No reviews for this product yet.";
+ matching.forEach(review=>{
+  const div=document.createElement("div");div.className="review-item";
+  const stars=document.createElement("p");stars.className="stars";stars.textContent="★".repeat(review.rating)+"☆".repeat(5-review.rating);
+  const comment=document.createElement("p");comment.textContent=review.comment;
+  const author=document.createElement("p");author.className="small";author.textContent=`By ${review.name} | ${review.date}`;
+  div.append(stars,comment,author);list.append(div);
+ });
+ document.getElementById("productReviewForm").style.display=currentCustomer?"block":"none";
+ document.getElementById("reviewLoginPrompt").style.display=currentCustomer?"none":"block";
+ document.getElementById("productModal").style.display="block";
+}
+function submitProductReview(){
+ if(!currentCustomer){openLogin();return;}
+ const rating=Number(document.getElementById("detailRating").value);
+ const comment=document.getElementById("detailReviewText").value.trim();
+ if(!comment){alert("Please write a review.");return;}
+ reviews.push({product:activeProduct,name:currentCustomer.name,email:currentCustomer.email,rating,comment,date:new Date().toLocaleDateString("en-IN")});
+ localStorage.setItem("gbReviews",JSON.stringify(reviews));
+ document.getElementById("detailReviewText").value="";
+ openProduct(activeProduct);renderAllProducts();
+}
+function submitGeneralFeedback(){
+ if(!currentCustomer){closeModal("feedbackModal");openLogin("feedback");return;}
+ const comment=document.getElementById("feedbackText").value.trim();
+ if(!comment){alert("Please enter your feedback.");return;}
+ feedback.push({name:currentCustomer.name,email:currentCustomer.email,comment,date:new Date().toLocaleDateString("en-IN")});
+ localStorage.setItem("gbFeedback",JSON.stringify(feedback));
+ document.getElementById("feedbackText").value="";closeModal("feedbackModal");showGeneralFeedback();
+ alert("Thank you for your feedback.");
+}
+function showGeneralFeedback(){
+ const root=document.getElementById("generalFeedbackList");root.replaceChildren();
+ feedback.slice().reverse().forEach(f=>{
+  const div=document.createElement("div");div.className="review-item";
+  const p=document.createElement("p");p.textContent=f.comment;
+  const small=document.createElement("p");small.className="small";small.textContent=`${f.name} | ${f.date}`;
+  div.append(p,small);root.append(div);
+ });
+}
+function logout(){
+ currentCustomer=null;sessionStorage.removeItem("gbCustomer");
+ document.getElementById("accountStatus").textContent="You are signed out.";
+ renderCustomerNav();closeModal("customerProfileModal");
+ alert("You have been signed out.");
+}
+
+// Google Identity Services button: requires a Google OAuth web client ID and server-side token verification.
+function handleGoogleCredential(response){
+ // Demo display only. A production server must verify response.credential before creating a session.
+ try{
+  const payload=JSON.parse(atob(response.credential.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+  setCustomer({name:payload.name||"Google customer",email:payload.email||""});
+  alert("Google identity received for demonstration. Configure server-side token verification before using this for real customer accounts.");
+ }catch(e){alert("Google sign-in response could not be read.");}
+}
+function initialiseGoogleSignIn(){
+ const clientId="YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com";
+ if(clientId.startsWith("YOUR_"))return;
+ const script=document.createElement("script");script.src="https://accounts.google.com/gsi/client";script.async=true;script.defer=true;
+ script.onload=()=>{
+  google.accounts.id.initialize({client_id:clientId,callback:handleGoogleCredential});
+  google.accounts.id.renderButton(document.getElementById("googleSignInButton"),{theme:"outline",size:"large",text:"continue_with"});
+ };
+ document.head.appendChild(script);
+}
+
+renderAllProducts();renderHomeFeatured();updateCart();showGeneralFeedback();initialiseGoogleSignIn();
+if(currentCustomer)document.getElementById("accountStatus").textContent=`Signed in as ${currentCustomer.name} (${currentCustomer.email||currentCustomer.mobile})`;
+renderCustomerNav();
+</script>
+
+<script>
+function hideMainViews(){
+  // Shared page switcher used by Cart and Administrator navigation.
+  hideStorefrontSections();
+}
+function showCartPage(){
+  hideMainViews();
+  const cartPage=document.getElementById('cartPage');
+  cartPage.style.display='block';
+  cartPage.classList.add('active');
+  renderIntegratedCart();
+  if(location.hash!=='#cart') history.replaceState(null,'','#cart');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showAdminPage(){
+  hideMainViews();
+  const adminPage=document.getElementById('adminPage');
+  adminPage.style.display='block';
+  adminPage.classList.add('active');
+  document.getElementById('integratedAdminError').textContent='';
+  if(sessionStorage.getItem('gbAdminLoggedIn')==='yes')renderIntegratedAdminDashboard();
+  if(location.hash!=='#admin') history.replaceState(null,'','#admin');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderIntegratedCart(){
+ const root=document.getElementById('integratedCartItems');if(!root)return;root.replaceChildren();
+ const type=document.getElementById('orderType').value;let total=0;
+ if(!cart.length)root.textContent='Your cart is empty. Return to the shop to add products.';
+ cart.forEach(item=>{const p=products.find(x=>x.name===item.name);if(!p)return;const special=activeOffer(p),basePrice=type==='Bulk'&&p.bulkPrice?p.bulkPrice:p.price,price=special?Math.round((p.originalPrice??basePrice)*(1-special.percent/100)*100)/100:basePrice;const unit=type==='Bulk'&&p.bulkPrice?p.bulkUnit:p.unit;const amount=price*item.qty;total+=amount;
+  const row=document.createElement('div');row.className='app-cart-row';const info=document.createElement('span');info.textContent=`${p.name} — ${p.unit==="kg"&&item.qty<1?(item.qty*1000)+" g":item.qty+" "+unit} — ₹${amount.toFixed(2)}`;const actions=document.createElement('span');
+  const step=p.unit==="kg"?0.25:1;const minus=document.createElement('button');minus.textContent='−';minus.onclick=()=>changeQty(p.name,-step);const plus=document.createElement('button');plus.textContent='+';plus.onclick=()=>changeQty(p.name,step);const remove=document.createElement('button');remove.textContent='Remove';remove.onclick=()=>removeFromCart(p.name);actions.append(minus,plus,remove);row.append(info,actions);root.append(row);
+ });
+ const discount=appliedCoupon?total*appliedCoupon.percent/100:0;
+ document.getElementById('integratedCartTotal').textContent='Total: ₹'+(total-discount).toFixed(2)+(discount?` (before coupon ₹${total.toFixed(2)})`:"");
+}
+const INTEGRATED_ADMIN_EMAIL='admin@greenbasket.com';const INTEGRATED_ADMIN_PASSWORD='GreenBasket@2026';
+document.getElementById('integratedAdminLogin').addEventListener('submit',e=>{e.preventDefault();const email=document.getElementById('integratedAdminEmail').value.trim().toLowerCase(),password=document.getElementById('integratedAdminPassword').value;if(email===INTEGRATED_ADMIN_EMAIL&&password===INTEGRATED_ADMIN_PASSWORD){sessionStorage.setItem('gbAdminLoggedIn','yes');renderIntegratedAdminDashboard();}else{document.getElementById('integratedAdminError').textContent='Incorrect administrator email or password.';}});
+function integratedAdminLogout(){sessionStorage.removeItem('gbAdminLoggedIn');document.getElementById('integratedAdminDashboard').style.display='none';document.getElementById('adminLoginPanel').style.display='block';document.getElementById('integratedAdminPassword').value='';}
+let pendingAdminProductImage="";
+document.addEventListener('change',e=>{
+ if(e.target.id==='adminProductSelect'){
+  const map=JSON.parse(localStorage.getItem('gbProductImages')||'{}');
+  const src=map[e.target.value]||products.find(p=>p.name===e.target.value)?.image||'';
+  const preview=document.getElementById('adminProductImagePreview');preview.src=src;preview.style.display=src?'block':'none';
+  document.getElementById('adminImageStatus').textContent='';
+ }
+ if(e.target.id==='adminProductImage'){
+  const file=e.target.files?.[0];if(!file)return;
+  if(!file.type.startsWith('image/')){document.getElementById('adminImageStatus').textContent='Please choose an image file.';return;}
+  if(file.size>8*1024*1024){document.getElementById('adminImageStatus').textContent='Please choose an image smaller than 8 MB.';return;}
+  const reader=new FileReader();reader.onload=()=>{
+   const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');const scale=Math.min(1,1000/Math.max(img.width,img.height));canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);pendingAdminProductImage=canvas.toDataURL('image/jpeg',0.82);const preview=document.getElementById('adminProductImagePreview');preview.src=pendingAdminProductImage;preview.style.display='block';document.getElementById('adminImageStatus').textContent='Image ready to save.';};img.onerror=()=>document.getElementById('adminImageStatus').textContent='Could not read this image.';img.src=reader.result;};reader.readAsDataURL(file);
+ }
+});
+function saveAdminProductImage(){
+ const name=document.getElementById('adminProductSelect').value;if(!name||!pendingAdminProductImage){document.getElementById('adminImageStatus').textContent='Select a product and choose a photograph first.';return;}
+ const map=JSON.parse(localStorage.getItem('gbProductImages')||'{}');map[name]=pendingAdminProductImage;
+ try{localStorage.setItem('gbProductImages',JSON.stringify(map));const product=products.find(p=>p.name===name);if(product)product.image=pendingAdminProductImage;localStorage.setItem('gbProductCatalog',JSON.stringify(products));pendingAdminProductImage='';document.getElementById('adminProductImage').value='';document.getElementById('adminImageStatus').textContent='Photograph saved. Refresh the relevant product page to see the update.';}
+ catch(err){document.getElementById('adminImageStatus').textContent='Browser storage is full. Use a smaller image.';}
+}
+function renderIntegratedAdminDashboard(){
+ const orders=JSON.parse(localStorage.getItem('gbDemoOrders')||'[]'),users=JSON.parse(localStorage.getItem('gbDemoUsers')||'[]'),fb=JSON.parse(localStorage.getItem('gbFeedback')||'[]'),catalog=JSON.parse(localStorage.getItem('gbProductCatalog')||'[]');
+ document.getElementById('integratedOrderCount').textContent=orders.length;document.getElementById('integratedCustomerCount').textContent=users.length;document.getElementById('integratedFeedbackCount').textContent=fb.length;document.getElementById('integratedProductCount').textContent=catalog.length;
+ const orderRoot=document.getElementById('integratedOrdersList');orderRoot.replaceChildren();if(!orders.length)orderRoot.textContent='No order enquiries have been recorded in this browser yet.';orders.slice().reverse().forEach(o=>{const d=document.createElement('div');d.className='admin-data-row';const title=document.createElement('strong');title.textContent=`${o.customer?.name||'Customer'} — ₹${Number(o.total||0).toFixed(2)} (${o.orderType||'Retail'})`;const details=document.createElement('p');details.textContent=(o.items||[]).map(i=>`${i.name} × ${i.quantity} ${i.unit}`).join(', ');const date=document.createElement('p');date.className='small';date.textContent=`${o.customer?.email||o.customer?.mobile||''} | Delivery: ${o.delivery?.mobile||''}, ${o.delivery?.address||'—'} | Coupon: ${o.coupon||'—'} | ${o.date?new Date(o.date).toLocaleString():''} | ${o.status||'Enquiry'}`;d.append(title,details,date);orderRoot.append(d);});
+ const feedbackRoot=document.getElementById('integratedFeedbackList');feedbackRoot.replaceChildren();if(!fb.length)feedbackRoot.textContent='No customer feedback has been submitted.';fb.slice().reverse().forEach(f=>{const d=document.createElement('div');d.className='admin-data-row';const msg=document.createElement('p');msg.textContent=f.comment||'';const who=document.createElement('p');who.className='small';who.textContent=`${f.name||'Customer'} | ${f.email||''} | ${f.date||''}`;d.append(msg,who);feedbackRoot.append(d);});
+ updateAdminProductSelectors();const sel=document.getElementById('adminProductSelect');if(sel)sel.dispatchEvent(new Event('change'));
+ const catRoot=document.getElementById('integratedCatalogueList');catRoot.replaceChildren();const counts={};catalog.forEach(p=>counts[p.category]=(counts[p.category]||0)+1);Object.entries(counts).forEach(([c,n])=>{const p=document.createElement('p');p.textContent=`${c}: ${n} products`;catRoot.append(p);});
+ document.getElementById('adminLoginPanel').style.display='none';document.getElementById('integratedAdminDashboard').style.display='block';
+}
+
+
+/* Administrator product, offer and coupon controls */
+function persistCatalog(){localStorage.setItem("gbProductCatalog",JSON.stringify(products));renderAllProducts();renderHomeFeatured();updateAdminProductSelectors();}
+function updateAdminProductSelectors(){
+ ["adminEditProduct","adminOfferProduct","adminProductSelect"].forEach(id=>{const el=document.getElementById(id);if(!el)return;const old=el.value;el.replaceChildren();if(id==="adminEditProduct"){const blank=document.createElement("option");blank.value="";blank.textContent="Add a new product…";el.append(blank);}products.forEach(p=>{const o=document.createElement("option");o.value=p.name;o.textContent=p.name;el.append(o);});if([...el.options].some(o=>o.value===old))el.value=old;});
+ renderAdminOfferList();renderAdminCouponList();
+}
+function loadAdminProductEditor(){
+ const p=products.find(x=>x.name===document.getElementById("adminEditProduct").value);if(!p){resetAdminProductEditor();return;}
+ document.getElementById("adminItemName").value=p.name;document.getElementById("adminItemCategory").value=p.category;document.getElementById("adminItemPrice").value=p.originalPrice??p.price;document.getElementById("adminItemUnit").value=p.unit;document.getElementById("adminItemDescription").value=p.description||"";document.getElementById("adminItemImage").value=p.image||"";
+}
+function resetAdminProductEditor(){document.getElementById("adminEditProduct").value="";["adminItemName","adminItemPrice","adminItemUnit","adminItemDescription","adminItemImage"].forEach(id=>document.getElementById(id).value="");}
+function saveAdminProduct(){
+ const oldName=document.getElementById("adminEditProduct").value,name=document.getElementById("adminItemName").value.trim(),category=document.getElementById("adminItemCategory").value,price=Number(document.getElementById("adminItemPrice").value),unit=document.getElementById("adminItemUnit").value.trim()||"kg";
+ if(!name||!Number.isFinite(price)||price<=0){alert("Enter a product name and a valid price.");return;}
+ if(products.some(p=>p.name.toLowerCase()===name.toLowerCase()&&p.name!==oldName)){alert("A product with this name already exists.");return;}
+ const data={name,category,price,originalPrice:price,unit,description:document.getElementById("adminItemDescription").value.trim(),image:document.getElementById("adminItemImage").value.trim()||"https://images.unsplash.com/photo-1542838132-92c53300491e?w=600"};
+ if(oldName){const p=products.find(x=>x.name===oldName);Object.assign(p,data);}else products.push(data);
+ localStorage.setItem("gbProductCatalog",JSON.stringify(products));document.getElementById("adminProductStatus").textContent=`${name} saved successfully.`;resetAdminProductEditor();updateAdminProductSelectors();persistCatalog();
+}
+function saveAdminOffer(){
+ const name=document.getElementById("adminOfferProduct").value,percent=Number(document.getElementById("adminOfferPercent").value),event=document.getElementById("adminOfferEvent").value.trim(),start=document.getElementById("adminOfferStart").value,end=document.getElementById("adminOfferEnd").value;
+ if(!name||!percent||percent<1||percent>90||!start||!end||end<start){alert("Select a product, discount (1–90%) and valid offer dates.");return;}
+ const offers=JSON.parse(localStorage.getItem("gbOffers")||"[]").filter(o=>o.product!==name);offers.push({product:name,percent,event,start,end});localStorage.setItem("gbOffers",JSON.stringify(offers));renderAdminOfferList();renderAllProducts();renderHomeFeatured();alert("Offer saved.");
+}
+function renderAdminOfferList(){const root=document.getElementById("adminOfferList");if(!root)return;root.replaceChildren();JSON.parse(localStorage.getItem("gbOffers")||"[]").forEach(o=>{const d=document.createElement("p");d.className="admin-data-row";d.textContent=`${o.product}: ${o.percent}% — ${o.event||"Offer"} (${o.start} to ${o.end})`;root.append(d);});}
+function saveAdminCoupon(){
+ const code=document.getElementById("adminCouponCode").value.trim().toUpperCase(),percent=Number(document.getElementById("adminCouponPercent").value),expiry=document.getElementById("adminCouponExpiry").value;
+ if(!/^[A-Z0-9_-]{3,20}$/.test(code)||percent<1||percent>90){alert("Enter a coupon code (3–20 letters/numbers) and discount 1–90%.");return;}
+ const coupons=JSON.parse(localStorage.getItem("gbCoupons")||"[]").filter(c=>c.code!==code);coupons.push({code,percent,expiry});localStorage.setItem("gbCoupons",JSON.stringify(coupons));renderAdminCouponList();alert("Coupon saved.");
+}
+function renderAdminCouponList(){const root=document.getElementById("adminCouponList");if(!root)return;root.replaceChildren();JSON.parse(localStorage.getItem("gbCoupons")||"[]").forEach(c=>{const d=document.createElement("p");d.className="admin-data-row";d.textContent=`${c.code}: ${c.percent}% off${c.expiry?" · Expires "+c.expiry:" · No expiry"}`;root.append(d);});}
+
+renderIntegratedCart();
+// Initialise the storefront only after the page-switching functions are defined.
+showHome();
+</script>
+
+</body>
+</html>
